@@ -3,9 +3,32 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image: circleci/openjdk:17-jdk
+      - image: cimg/openjdk:17.0.2
     steps:
       - checkout
+      - run:
+          name: Setup dependencies 
+          command: |
+            VER="17.12.0-ce"
+            curl -L -o /tmp/docker-$VER.tgz https://download.docker.com/linux/static/stable/x86_64/docker-$VER.tgz
+            tar -xz -C /tmp -f /tmp/docker-$VER.tgz
+            sudo mv -f /tmp/docker/* /usr/bin
+      - run:
+          name: Install aws  
+          command: |
+            echo "installing aws cli"
+            wget "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -O "awscliv2.zip"
+            unzip awscliv2.zip
+            chmod +x ./aws/install
+            # sudo ./aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update
+            sudo ./aws/install  
+            echo "installed aws cli"
+      - run:
+          name: Install aws  
+          command: |
+            aws --version 
+            docker version
+
       - run:
           name: Build JAR
           command: ./mvnw package
