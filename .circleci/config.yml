@@ -45,10 +45,14 @@ jobs:
             docker tag api-service:latest ${ECR_REPOSITORY_URI}/api-service:latest
             docker tag api-service:latest ${ECR_REPOSITORY_URI}/api-service:${COMMIT_ID}
       - run:
+          name: Log in to ECR
+          command: |
+            aws configure set default.region $AWS_DEFAULT_REGION
+            aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ECR_REPOSITORY_URI
+      - run:
           name: Push Docker image to ECR
           command: |
             COMMIT_ID=$(echo $CIRCLE_SHA1 | cut -c1-7)
-            $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
             docker push ${ECR_REPOSITORY_URI}/api-service:latest
             docker push ${ECR_REPOSITORY_URI}/api-service:${COMMIT_ID}	
 
