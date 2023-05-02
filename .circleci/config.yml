@@ -29,10 +29,12 @@ jobs:
           command: |
             # aws --version 
             docker version
-
+      - run:
+          name: Modify file permissions
+          command: chmod +x mvnw
       - run:
           name: Build JAR
-          command: ./mvnw package
+          command: ./mvnw clean package
       - run:
           name: Build Docker image
           command: |
