@@ -6,14 +6,14 @@ jobs:
       - image: cimg/openjdk:17.0.2
     steps:
       - checkout
+      - setup_remote_docker
       - run:
-          name: Setup dependencies 
+          name: Install Docker
           command: |
-            apk add --update sudo
-            VER="17.12.0-ce"
-            curl -L -o /tmp/docker-$VER.tgz https://download.docker.com/linux/static/stable/x86_64/docker-$VER.tgz
-            tar -xz -C /tmp -f /tmp/docker-$VER.tgz
-            sudo mv -f /tmp/docker/* /usr/bin
+            sudo apt-get update && sudo apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common
+            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+            sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+            sudo apt-get update && sudo apt-get install -y docker-ce docker-ce-cli containerd.io
       - run:
           name: Install aws  
           command: |
