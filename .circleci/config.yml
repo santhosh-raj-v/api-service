@@ -43,7 +43,7 @@ jobs:
             COMMIT_ID=$(echo $CIRCLE_SHA1 | cut -c1-7)
             docker build -t api-service .
             docker tag api-service:latest ${ECR_REPOSITORY_URI}/api-service:latest
-            docker tag  api-service:${COMMIT_ID} ${ECR_REPOSITORY_URI}/api-service:${COMMIT_ID}
+            docker tag api-service:latest ${ECR_REPOSITORY_URI}/api-service:${COMMIT_ID}
       - run:
           name: Push Docker image to ECR
           command: |
