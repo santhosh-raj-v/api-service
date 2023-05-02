@@ -4,6 +4,8 @@ jobs:
   build:
     docker:
       - image: cimg/openjdk:17.0.2
+    environment: 
+      AWS_DEFAULT_REGION: us-east-1
     steps:
       - checkout
       - setup_remote_docker
@@ -17,17 +19,17 @@ jobs:
       - run:
           name: Install aws  
           command: |
-            # echo "installing aws cli"
-            # wget "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -O "awscliv2.zip"
-            # unzip awscliv2.zip
-            # chmod +x ./aws/install
-            # # sudo ./aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update
-            # sudo ./aws/install  
-            # echo "installed aws cli"
+            echo "installing aws cli"
+            wget "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -O "awscliv2.zip"
+            unzip awscliv2.zip
+            chmod +x ./aws/install
+            # sudo ./aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update
+            sudo ./aws/install  
+            echo "installed aws cli"
       - run:
           name: Install aws  
           command: |
-            # aws --version 
+            aws --version 
             docker version
       - run:
           name: Modify file permissions
@@ -41,8 +43,7 @@ jobs:
             COMMIT_ID=$(echo $CIRCLE_SHA1 | cut -c1-7)
             docker build -t api-service .
             docker tag api-service:latest ${ECR_REPOSITORY_URI}/api-service:latest
-            docker build -t  api-service:${COMMIT_ID} .
-            docker tag  api-service:${COMMIT_ID} /api-service:${COMMIT_ID}
+            docker tag  api-service:${COMMIT_ID} ${ECR_REPOSITORY_URI}/api-service:${COMMIT_ID}
       - run:
           name: Push Docker image to ECR
           command: |
