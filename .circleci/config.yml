@@ -38,13 +38,15 @@ jobs:
       - run:
           name: Build Docker image
           command: |
+            COMMIT_ID=$(echo $CIRCLE_SHA1 | cut -c1-7)
             docker build -t api-service .
             docker tag api-service:latest ${ECR_REPOSITORY_URI}/api-service:latest
-            docker build -t  api-service:${CIRCLE_SHA1} .
-            docker tag  api-service:${CIRCLE_SHA1} /api-service:${CIRCLE_SHA1}
+            docker build -t  api-service:${COMMIT_ID} .
+            docker tag  api-service:${COMMIT_ID} /api-service:${COMMIT_ID}
       - run:
           name: Push Docker image to ECR
           command: |
+            COMMIT_ID=$(echo $CIRCLE_SHA1 | cut -c1-7)
             $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
             docker push ${ECR_REPOSITORY_URI}/api-service:latest
-            docker push ${ECR_REPOSITORY_URI}/api-service:${CIRCLE_SHA1}	
+            docker push ${ECR_REPOSITORY_URI}/api-service:${COMMIT_ID}	
