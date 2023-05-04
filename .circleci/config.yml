@@ -1,0 +1,64 @@
+version: 2.1
+
+jobs:
+  build:
+    docker:
+      - image: cimg/openjdk:17.0.2
+    environment: 
+      AWS_DEFAULT_REGION: us-east-1
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Install Docker
+          command: |
+            sudo apt-get update && sudo apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common
+            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+            sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+            sudo apt-get update && sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+      - run:
+          name: Install aws  
+          command: |
+            echo "installing aws cli"
+            wget "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -O "awscliv2.zip"
+            unzip awscliv2.zip
+            chmod +x ./aws/install
+            # sudo ./aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update
+            sudo ./aws/install  
+            echo "installed aws cli"
+      - run:
+          name: Install aws  
+          command: |
+            aws --version 
+            docker version
+      - run:
+          name: Modify file permissions
+          command: chmod +x mvnw
+      - run:
+          name: Build JAR
+          command: ./mvnw clean package
+      - run:
+          name: Build Docker image
+          command: |
+            COMMIT_ID=$(echo $CIRCLE_SHA1 | cut -c1-7)
+            docker build -t api-service .
+            docker tag api-service:latest ${ECR_REPOSITORY_URI}/api-service:latest
+            docker tag api-service:latest ${ECR_REPOSITORY_URI}/api-service:${COMMIT_ID}
+      - run:
+          name: Log in to ECR
+          command: |
+            aws configure set default.region $AWS_DEFAULT_REGION
+            aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ECR_REPOSITORY_URI
+      - run:
+          name: Push Docker image to ECR
+          command: |
+            COMMIT_ID=$(echo $CIRCLE_SHA1 | cut -c1-7)
+            docker push ${ECR_REPOSITORY_URI}/api-service:latest
+            docker push ${ECR_REPOSITORY_URI}/api-service:${COMMIT_ID}	
+
+workflows:
+  my-workflow:
+    jobs:
+      - build:
+          context:
+            - srv-app-ad
